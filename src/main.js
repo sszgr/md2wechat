@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   customThemes: 'md2wechat.customThemes',
   previewMode: 'md2wechat.previewMode',
   codeTheme: 'md2wechat.codeTheme',
+  inlineLinks: 'md2wechat.inlineLinks',
 };
 
 const CODE_THEMES = [
@@ -160,17 +161,15 @@ const BUILTIN_THEMES = [
 ];
 
 const INLINE_STYLE_PROPS = [
-  'display', 'position', 'float', 'clear',
-  'height', 'max-height', 'min-height',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
   'border', 'border-top', 'border-right', 'border-bottom', 'border-left',
   'border-radius',
   'background', 'background-color',
-  'color', 'font', 'font-size', 'font-weight', 'font-style', 'font-family',
+  'color', 'font-size', 'font-weight', 'font-style', 'font-family',
   'line-height', 'letter-spacing',
   'text-align', 'text-decoration', 'text-indent', 'white-space', 'word-break',
-  'vertical-align', 'overflow',
+  'vertical-align',
   'list-style-type',
   'box-shadow',
 ];
@@ -312,6 +311,7 @@ app.innerHTML = `
       <div class="panel-title panel-title-row">
         <span>预览</span>
         <div class="panel-title-actions">
+          <button id="inlineLinksBtn" type="button">追加文内链接：关</button>
           <button id="selectPreviewBtn" type="button">全选预览</button>
           <button id="copyBtn" class="primary" type="button">复制到公众号</button>
         </div>
@@ -360,6 +360,7 @@ const themeSelect = document.querySelector('#themeSelect');
 const codeThemeSelect = document.querySelector('#codeThemeSelect');
 const previewModeSelect = document.querySelector('#previewModeSelect');
 const previewViewport = document.querySelector('#previewViewport');
+const inlineLinksBtn = document.querySelector('#inlineLinksBtn');
 const selectPreviewBtn = document.querySelector('#selectPreviewBtn');
 const copyBtn = document.querySelector('#copyBtn');
 const preview = document.querySelector('#preview');
@@ -386,6 +387,7 @@ let managerEditingMode = 'existing';
 let managerSelectedThemeId = null;
 let customThemes = loadCustomThemes();
 let allThemes = [...BUILTIN_THEMES, ...customThemes];
+let inlineLinksEnabled = localStorage.getItem(STORAGE_KEYS.inlineLinks) === '1';
 
 function loadCustomThemes() {
   try {
@@ -572,9 +574,96 @@ function toInlineStyles(sourceEl, targetEl) {
   }
 }
 
+function appendStyle(el, styleText) {
+  const current = el.getAttribute('style') || '';
+  el.setAttribute('style', `${current};${styleText}`);
+}
+
+function renderInlineLinksButton() {
+  inlineLinksBtn.textContent = inlineLinksEnabled ? '追加文内链接：开' : '追加文内链接：关';
+}
+
+function normalizeCopyDom(rootEl) {
+  appendStyle(rootEl, 'box-sizing:border-box;line-height:1.75;word-break:break-word;');
+
+  rootEl.querySelectorAll('p').forEach((el) => {
+    appendStyle(el, 'margin:0.55em 0;line-height:1.75;');
+  });
+
+  rootEl.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach((el) => {
+    appendStyle(el, 'margin:1.05em 0 0.45em;line-height:1.45;');
+  });
+
+  rootEl.querySelectorAll('blockquote').forEach((el) => {
+    appendStyle(el, 'margin:0.7em 0;padding:0.7em 0.9em;max-width:100%;width:auto;box-sizing:border-box;');
+  });
+
+  rootEl.querySelectorAll('img').forEach((el) => {
+    appendStyle(el, 'max-width:100%;height:auto;display:block;');
+  });
+
+  rootEl.querySelectorAll('pre').forEach((el) => {
+    appendStyle(el, 'line-height:1.6;white-space:pre-wrap;word-break:break-word;');
+  });
+
+  rootEl.querySelectorAll('li').forEach((el) => {
+    appendStyle(el, 'line-height:1.75;margin:0.25em 0;');
+  });
+}
+
+function appendInlineLinks(rootEl) {
+  const links = [];
+  const indexByHref = new Map();
+
+  rootEl.querySelectorAll('a[href]').forEach((a) => {
+    const href = (a.getAttribute('href') || '').trim();
+    if (!href || !/^https?:\/\//i.test(href)) return;
+
+    let idx = indexByHref.get(href);
+    if (!idx) {
+      idx = links.length + 1;
+      indexByHref.set(href, idx);
+      links.push({ href, text: (a.textContent || '').trim() });
+    }
+
+    const marker = document.createElement('sup');
+    marker.textContent = `[${idx}]`;
+    appendStyle(marker, 'font-size:0.78em;line-height:1;vertical-align:super;');
+    a.after(marker);
+  });
+
+  if (links.length === 0) return;
+
+  const divider = document.createElement('hr');
+  appendStyle(divider, 'margin:1.2em 0;border:0;border-top:1px solid #d9d9d9;');
+
+  const title = document.createElement('p');
+  title.textContent = '文内链接：';
+  appendStyle(title, 'margin:0.3em 0 0.4em;font-weight:700;');
+
+  const list = document.createElement('ol');
+  appendStyle(list, 'margin:0;padding-left:1.2em;');
+
+  links.forEach((item) => {
+    const li = document.createElement('li');
+    const showText = item.text && item.text !== item.href;
+    li.textContent = showText ? `${item.text} - ${item.href}` : item.href;
+    appendStyle(li, 'margin:0.22em 0;line-height:1.6;word-break:break-all;');
+    list.appendChild(li);
+  });
+
+  rootEl.appendChild(divider);
+  rootEl.appendChild(title);
+  rootEl.appendChild(list);
+}
+
 function buildCopyHtml() {
   const cloned = preview.cloneNode(true);
   toInlineStyles(preview, cloned);
+  normalizeCopyDom(cloned);
+  if (inlineLinksEnabled) {
+    appendInlineLinks(cloned);
+  }
   const cleanedRootStyle = [
     'border:none',
     'border-radius:0',
@@ -705,6 +794,7 @@ const editorView = new EditorView({
 
 renderPreview(currentMarkdown);
 selectThemeInManager(localStorage.getItem(STORAGE_KEYS.selectedTheme) || BUILTIN_THEMES[0].id);
+renderInlineLinksButton();
 loadHighlightAssets(getInitialCodeThemeId(), () => {
   renderPreview(currentMarkdown);
 });
@@ -729,6 +819,12 @@ codeThemeSelect.addEventListener('change', () => {
   loadHighlightAssets(codeThemeSelect.value, () => {
     renderPreview(currentMarkdown);
   });
+});
+
+inlineLinksBtn.addEventListener('click', () => {
+  inlineLinksEnabled = !inlineLinksEnabled;
+  localStorage.setItem(STORAGE_KEYS.inlineLinks, inlineLinksEnabled ? '1' : '0');
+  renderInlineLinksButton();
 });
 
 snippetList.addEventListener('click', (event) => {
