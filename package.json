@@ -1,0 +1,21 @@
+{
+  "name": "md2wechat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@codemirror/lang-markdown": "^6.3.4",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
+    "codemirror": "^6.0.2",
+    "markdown-it": "^14.1.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3"
+  }
+}
