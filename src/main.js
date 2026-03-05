@@ -174,6 +174,10 @@ const INLINE_STYLE_PROPS = [
   'box-shadow',
 ];
 
+const LOCAL_IMAGE_SCHEME = 'local://';
+const ASSET_DB_NAME = 'md2wechat-assets';
+const ASSET_STORE_NAME = 'images';
+
 function escapeHtml(value) {
   return value
     .replace(/&/g, '&amp;')
@@ -270,6 +274,7 @@ app.innerHTML = `
       <span class="logo">md2wechat</span>
       <button id="editorViewBtn" class="tab-btn active" type="button">编辑器</button>
       <button id="themeViewBtn" class="tab-btn" type="button">主题管理</button>
+      <button id="imageAssetsBtn" type="button">文中图片</button>
       <div class="tool-field">
         <span class="tool-label">预览主题：</span>
         <select id="themeSelect" title="选择主题"></select>
@@ -287,18 +292,17 @@ app.innerHTML = `
       </div>
     </div>
     <div class="toolbar-right">
-      <a
-        class="icon-btn github-link"
-        href="https://github.com/sszgr/md2wechat"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="打开 GitHub 仓库"
-        aria-label="打开 GitHub 仓库"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 .5A11.5 11.5 0 0 0 .5 12.22c0 5.23 3.36 9.67 8.03 11.24.59.12.8-.27.8-.58v-2.2c-3.27.73-3.95-1.61-3.95-1.61-.53-1.4-1.3-1.77-1.3-1.77-1.06-.74.08-.73.08-.73 1.17.08 1.79 1.24 1.79 1.24 1.05 1.84 2.74 1.31 3.4 1 .1-.78.4-1.31.73-1.61-2.61-.31-5.35-1.35-5.35-6.01 0-1.33.46-2.42 1.22-3.27-.12-.31-.53-1.56.12-3.24 0 0 1-.33 3.3 1.25a11.2 11.2 0 0 1 6.01 0c2.29-1.58 3.29-1.25 3.29-1.25.66 1.68.25 2.93.12 3.24.76.85 1.22 1.94 1.22 3.27 0 4.67-2.75 5.7-5.37 6 .42.37.8 1.07.8 2.17v3.21c0 .31.2.71.81.58A11.74 11.74 0 0 0 23.5 12.2 11.5 11.5 0 0 0 12 .5Z" />
-        </svg>
-      </a>
+      <div class="wechat-entry" aria-label="微信公众号二维码">
+        <span id="wechatToggleBtn" class="icon-btn wechat-icon" title="微信公众号" role="button" tabindex="0" aria-label="打开微信公众号二维码">
+          <svg t="1772716456962" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1683" width="200" height="200">
+            <path d="M337.387283 341.82659c-17.757225 0-35.514451 11.83815-35.514451 29.595375s17.757225 29.595376 35.514451 29.595376 29.595376-11.83815 29.595376-29.595376c0-18.49711-11.83815-29.595376-29.595376-29.595375zM577.849711 513.479769c-11.83815 0-22.936416 12.578035-22.936416 23.6763 0 12.578035 11.83815 23.676301 22.936416 23.676301 17.757225 0 29.595376-11.83815 29.595376-23.676301s-11.83815-23.676301-29.595376-23.6763zM501.641618 401.017341c17.757225 0 29.595376-12.578035 29.595376-29.595376 0-17.757225-11.83815-29.595376-29.595376-29.595375s-35.514451 11.83815-35.51445 29.595375 17.757225 29.595376 35.51445 29.595376zM706.589595 513.479769c-11.83815 0-22.936416 12.578035-22.936416 23.6763 0 12.578035 11.83815 23.676301 22.936416 23.676301 17.757225 0 29.595376-11.83815 29.595376-23.676301s-11.83815-23.676301-29.595376-23.6763z" fill="#28C445" p-id="1684"></path><path d="M510.520231 2.959538C228.624277 2.959538 0 231.583815 0 513.479769s228.624277 510.520231 510.520231 510.520231 510.520231-228.624277 510.520231-510.520231-228.624277-510.520231-510.520231-510.520231zM413.595376 644.439306c-29.595376 0-53.271676-5.919075-81.387284-12.578034l-81.387283 41.433526 22.936416-71.768786c-58.450867-41.433526-93.965318-95.445087-93.965317-159.815029 0-113.202312 105.803468-201.988439 233.803468-201.98844 114.682081 0 216.046243 71.028902 236.023121 166.473989-7.398844-0.739884-14.797688-1.479769-22.196532-1.479769-110.982659 1.479769-198.289017 85.086705-198.289017 188.67052 0 17.017341 2.959538 33.294798 7.398844 49.572255-7.398844 0.739884-15.537572 1.479769-22.936416 1.479768z m346.265896 82.867052l17.757225 59.190752-63.630058-35.514451c-22.936416 5.919075-46.612717 11.83815-70.289017 11.83815-111.722543 0-199.768786-76.947977-199.768786-172.393063-0.739884-94.705202 87.306358-171.653179 198.289017-171.65318 105.803468 0 199.028902 77.687861 199.028902 172.393064 0 53.271676-34.774566 100.624277-81.387283 136.138728z" fill="#28C445" p-id="1685"></path>
+          </svg>
+        </span>
+        <div id="wechatPopover" class="wechat-popover">
+          <img src="/wechat-qrcode.png" alt="微信公众号二维码" />
+          <div class="wechat-popover-title">微信公众号：碎碎冰安全</div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -350,10 +354,45 @@ app.innerHTML = `
       </div>
     </section>
   </main>
+
+  <div id="imageAssetsModal" class="modal hidden">
+    <div id="imageAssetsBackdrop" class="modal-backdrop"></div>
+    <section class="modal-card image-assets-modal">
+      <header class="modal-header">
+        <h3>文中图片资源</h3>
+        <button id="closeImageAssetsBtn" type="button" class="modal-close">关闭</button>
+      </header>
+      <div class="modal-body">
+        <div class="image-assets-table-wrap">
+          <table class="image-assets-table">
+            <thead>
+              <tr>
+                <th>资源名称</th>
+                <th>资源类型</th>
+                <th>资源地址</th>
+                <th>预览</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="imageRefList"></tbody>
+          </table>
+        </div>
+      </div>
+      <input id="imageFileInput" type="file" accept="image/*" hidden />
+    </section>
+  </div>
 `;
 
 const editorViewBtn = document.querySelector('#editorViewBtn');
 const themeViewBtn = document.querySelector('#themeViewBtn');
+const imageAssetsBtn = document.querySelector('#imageAssetsBtn');
+const wechatEntry = document.querySelector('.wechat-entry');
+const wechatToggleBtn = document.querySelector('#wechatToggleBtn');
+const wechatPopover = document.querySelector('#wechatPopover');
+const imageAssetsModal = document.querySelector('#imageAssetsModal');
+const imageAssetsBackdrop = document.querySelector('#imageAssetsBackdrop');
+const closeImageAssetsBtn = document.querySelector('#closeImageAssetsBtn');
+const imageFileInput = document.querySelector('#imageFileInput');
 const editorViewRoot = document.querySelector('#editorView');
 const themeManagerViewRoot = document.querySelector('#themeManagerView');
 const themeSelect = document.querySelector('#themeSelect');
@@ -364,6 +403,7 @@ const inlineLinksBtn = document.querySelector('#inlineLinksBtn');
 const selectPreviewBtn = document.querySelector('#selectPreviewBtn');
 const copyBtn = document.querySelector('#copyBtn');
 const preview = document.querySelector('#preview');
+const imageRefList = document.querySelector('#imageRefList');
 
 const themeList = document.querySelector('#themeList');
 const themeNameInput = document.querySelector('#themeNameInput');
@@ -381,6 +421,11 @@ document.head.appendChild(themeStyleTag);
 
 const cssEditableCompartment = new Compartment();
 let cssEditorView = null;
+let editorView = null;
+let pendingImageRefIndex = null;
+let assetDbPromise = null;
+const previewObjectUrls = new Set();
+const modalPreviewObjectUrls = new Set();
 
 let currentView = 'editor';
 let managerEditingMode = 'existing';
@@ -520,8 +565,220 @@ function applyTheme(themeId) {
   themeSelect.value = theme.id;
 }
 
+function isLocalImageUrl(url) {
+  return typeof url === 'string' && url.startsWith(LOCAL_IMAGE_SCHEME);
+}
+
+function getLocalImageId(url) {
+  if (!isLocalImageUrl(url)) return '';
+  return url.slice(LOCAL_IMAGE_SCHEME.length).trim();
+}
+
+function generateLocalImageId() {
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `img-${Date.now()}-${rand}`;
+}
+
+function getAssetDb() {
+  if (assetDbPromise) return assetDbPromise;
+  if (!window.indexedDB) {
+    return Promise.reject(new Error('当前浏览器不支持 IndexedDB'));
+  }
+  assetDbPromise = new Promise((resolve, reject) => {
+    const request = window.indexedDB.open(ASSET_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(ASSET_STORE_NAME)) {
+        db.createObjectStore(ASSET_STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('IndexedDB 初始化失败'));
+  });
+  return assetDbPromise;
+}
+
+async function putImageAsset(assetId, blob) {
+  const db = await getAssetDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(ASSET_STORE_NAME, 'readwrite');
+    tx.objectStore(ASSET_STORE_NAME).put(blob, assetId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('保存图片失败'));
+  });
+}
+
+async function getImageAsset(assetId) {
+  const db = await getAssetDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(ASSET_STORE_NAME, 'readonly');
+    const req = tx.objectStore(ASSET_STORE_NAME).get(assetId);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error || new Error('读取图片失败'));
+  });
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('图片转换失败'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function revokePreviewObjectUrls() {
+  previewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  previewObjectUrls.clear();
+}
+
+function revokeModalPreviewObjectUrls() {
+  modalPreviewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  modalPreviewObjectUrls.clear();
+}
+
+function replaceMarkdownRange(from, to, insert) {
+  if (!editorView) return;
+  editorView.dispatch({
+    changes: { from, to, insert },
+    selection: { anchor: from + insert.length },
+  });
+  const value = editorView.state.doc.toString();
+  currentMarkdown = value;
+  saveMarkdown(value);
+  renderPreview(value);
+  editorView.focus();
+}
+
+function parseMarkdownImages(markdownText) {
+  const list = [];
+  const regex = /!\[([^\]]*)\]\(([^)\n]+)\)/g;
+  let match = regex.exec(markdownText);
+  while (match) {
+    const whole = match[0];
+    const alt = match[1] ?? '';
+    const innerRaw = (match[2] ?? '').trim();
+    let urlToken = innerRaw;
+    let suffix = '';
+
+    if (innerRaw.startsWith('<')) {
+      const closing = innerRaw.indexOf('>');
+      if (closing > 0) {
+        urlToken = innerRaw.slice(0, closing + 1);
+        suffix = innerRaw.slice(closing + 1).trim();
+      }
+    } else {
+      const firstSpace = innerRaw.search(/\s/);
+      if (firstSpace > 0) {
+        urlToken = innerRaw.slice(0, firstSpace);
+        suffix = innerRaw.slice(firstSpace).trim();
+      }
+    }
+
+    const normalizedUrl = urlToken.startsWith('<') && urlToken.endsWith('>')
+      ? urlToken.slice(1, -1)
+      : urlToken;
+
+    list.push({
+      alt,
+      raw: whole,
+      from: match.index,
+      to: match.index + whole.length,
+      urlToken,
+      normalizedUrl,
+      suffix,
+      isLocal: isLocalImageUrl(normalizedUrl),
+      localId: getLocalImageId(normalizedUrl),
+    });
+    match = regex.exec(markdownText);
+  }
+  return list;
+}
+
+async function fillModalLocalPreviews() {
+  const rows = Array.from(imageRefList.querySelectorAll('tr[data-local-id]'));
+  for (const row of rows) {
+    const localId = row.dataset.localId;
+    if (!localId) continue;
+    const img = row.querySelector('img[data-preview-kind="local"]');
+    if (!(img instanceof HTMLImageElement)) continue;
+    try {
+      const blob = await getImageAsset(localId);
+      if (!blob) {
+        img.alt = '资源缺失';
+        continue;
+      }
+      const objectUrl = URL.createObjectURL(blob);
+      modalPreviewObjectUrls.add(objectUrl);
+      img.src = objectUrl;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
+function renderImageRefList(markdownText) {
+  revokeModalPreviewObjectUrls();
+  const images = parseMarkdownImages(markdownText);
+  if (images.length === 0) {
+    imageRefList.innerHTML = '<tr><td class="image-ref-empty" colspan="5">当前 Markdown 没有图片引用</td></tr>';
+    return;
+  }
+
+  imageRefList.innerHTML = images
+    .map((item, index) => {
+      const name = item.alt || `图片 ${index + 1}`;
+      const shownUrl = item.isLocal ? `${LOCAL_IMAGE_SCHEME}${item.localId}` : (item.normalizedUrl || '(空链接)');
+      const type = item.isLocal ? '本地资源' : '外部链接';
+      const previewTriggerLabel = '查看';
+      const remoteSrc = item.isLocal ? '' : item.normalizedUrl;
+      return `
+        <tr ${item.isLocal ? `data-local-id="${escapeHtml(item.localId)}"` : ''}>
+          <td>${escapeHtml(name)}</td>
+          <td>${type}</td>
+          <td class="image-address-cell">${escapeHtml(shownUrl)}</td>
+          <td>
+            <span class="preview-hover">
+              <span class="preview-trigger">${previewTriggerLabel}</span>
+              <span class="preview-popover">
+                <img data-preview-kind="${item.isLocal ? 'local' : 'remote'}" src="${escapeHtml(remoteSrc)}" alt="${escapeHtml(name)}" />
+              </span>
+            </span>
+          </td>
+          <td>
+            <button class="image-ref-btn" type="button" data-image-index="${index}">上传/更新图片</button>
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+  void fillModalLocalPreviews();
+}
+
+async function resolvePreviewLocalImages() {
+  const images = Array.from(preview.querySelectorAll('img[src]'));
+  for (const img of images) {
+    const rawSrc = (img.getAttribute('src') || '').trim();
+    const assetId = getLocalImageId(rawSrc);
+    if (!assetId) continue;
+    try {
+      const blob = await getImageAsset(assetId);
+      if (!blob) continue;
+      const objectUrl = URL.createObjectURL(blob);
+      previewObjectUrls.add(objectUrl);
+      img.setAttribute('src', objectUrl);
+      img.dataset.localAssetId = assetId;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
 function renderPreview(markdownText) {
+  revokePreviewObjectUrls();
   preview.innerHTML = md.render(markdownText);
+  renderImageRefList(markdownText);
+  void resolvePreviewLocalImages();
 }
 
 function saveMarkdown(markdownText) {
@@ -556,6 +813,27 @@ function openView(view) {
   themeManagerViewRoot.classList.toggle('hidden', editorOn);
   editorViewBtn.classList.toggle('active', editorOn);
   themeViewBtn.classList.toggle('active', !editorOn);
+}
+
+function openImageAssetsModal() {
+  renderImageRefList(currentMarkdown);
+  imageAssetsModal.classList.remove('hidden');
+}
+
+function closeImageAssetsModal() {
+  imageAssetsModal.classList.add('hidden');
+  revokeModalPreviewObjectUrls();
+}
+
+function closeWechatPopover() {
+  wechatEntry.classList.remove('open');
+  wechatToggleBtn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleWechatPopover() {
+  const willOpen = !wechatEntry.classList.contains('open');
+  wechatEntry.classList.toggle('open', willOpen);
+  wechatToggleBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
 }
 
 function toInlineStyles(sourceEl, targetEl) {
@@ -657,10 +935,28 @@ function appendInlineLinks(rootEl) {
   rootEl.appendChild(list);
 }
 
-function buildCopyHtml() {
+async function convertLocalImagesForCopy(rootEl) {
+  const images = Array.from(rootEl.querySelectorAll('img[src]'));
+  for (const img of images) {
+    const rawSrc = (img.getAttribute('src') || '').trim();
+    const assetId = img.dataset.localAssetId || getLocalImageId(rawSrc);
+    if (!assetId) continue;
+    try {
+      const blob = await getImageAsset(assetId);
+      if (!blob) continue;
+      const dataUrl = await blobToDataUrl(blob);
+      img.setAttribute('src', dataUrl);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}
+
+async function buildCopyHtml() {
   const cloned = preview.cloneNode(true);
   toInlineStyles(preview, cloned);
   normalizeCopyDom(cloned);
+  await convertLocalImagesForCopy(cloned);
   if (inlineLinksEnabled) {
     appendInlineLinks(cloned);
   }
@@ -691,7 +987,7 @@ function selectPreviewContent() {
 }
 
 async function copyPreviewToClipboard() {
-  const html = buildCopyHtml();
+  const html = await buildCopyHtml();
   const text = preview.innerText;
 
   if (window.ClipboardItem && navigator.clipboard?.write) {
@@ -787,7 +1083,7 @@ const editorState = EditorState.create({
   ],
 });
 
-const editorView = new EditorView({
+editorView = new EditorView({
   state: editorState,
   parent: document.querySelector('#editor'),
 });
@@ -803,6 +1099,87 @@ editorViewBtn.addEventListener('click', () => openView('editor'));
 themeViewBtn.addEventListener('click', () => {
   openView('themes');
   selectThemeInManager(managerSelectedThemeId || themeSelect.value);
+});
+imageAssetsBtn.addEventListener('click', () => {
+  openImageAssetsModal();
+});
+wechatToggleBtn.addEventListener('click', (event) => {
+  event.stopPropagation();
+  toggleWechatPopover();
+});
+wechatToggleBtn.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  toggleWechatPopover();
+});
+wechatPopover.addEventListener('click', (event) => {
+  event.stopPropagation();
+});
+closeImageAssetsBtn.addEventListener('click', () => {
+  closeImageAssetsModal();
+});
+imageAssetsBackdrop.addEventListener('click', () => {
+  closeImageAssetsModal();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeWechatPopover();
+  if (imageAssetsModal.classList.contains('hidden')) return;
+  closeImageAssetsModal();
+});
+document.addEventListener('click', (event) => {
+  if (wechatEntry.contains(event.target)) return;
+  closeWechatPopover();
+});
+
+imageFileInput.addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  try {
+    if (pendingImageRefIndex == null) {
+      window.alert('请先打开“文中图片”弹窗并点击对应资源的“上传/更新图片”');
+      return;
+    }
+
+    const images = parseMarkdownImages(currentMarkdown);
+    const target = images[pendingImageRefIndex];
+    if (!target) {
+      window.alert('目标图片引用已变化，请重新点击“上传/更新图片”');
+      return;
+    }
+
+    const nextAssetId = generateLocalImageId();
+    await putImageAsset(nextAssetId, file);
+    const nextUrl = `${LOCAL_IMAGE_SCHEME}${nextAssetId}`;
+
+    const wrappedUrl = (target.urlToken.startsWith('<') && target.urlToken.endsWith('>'))
+      ? `<${nextUrl}>`
+      : nextUrl;
+    const nextInner = target.suffix ? `${wrappedUrl} ${target.suffix}` : wrappedUrl;
+    const nextRaw = `![${target.alt}](${nextInner})`;
+    replaceMarkdownRange(target.from, target.to, nextRaw);
+  } catch (error) {
+    console.error(error);
+    window.alert('上传图片失败，请稍后重试');
+  } finally {
+    pendingImageRefIndex = null;
+    imageFileInput.value = '';
+  }
+});
+
+imageRefList.addEventListener('click', (event) => {
+  const target = event.target.closest('.image-ref-btn');
+  if (!(target instanceof HTMLElement)) return;
+  const imageIndex = Number(target.dataset.imageIndex);
+  if (!Number.isInteger(imageIndex) || imageIndex < 0) return;
+  pendingImageRefIndex = imageIndex;
+  imageFileInput.click();
+});
+
+window.addEventListener('beforeunload', () => {
+  revokePreviewObjectUrls();
+  revokeModalPreviewObjectUrls();
 });
 
 themeSelect.addEventListener('change', () => {
