@@ -911,8 +911,14 @@ app.innerHTML = `
     <div id="imageAssetsBackdrop" class="modal-backdrop"></div>
     <section class="modal-card image-assets-modal">
       <header class="modal-header">
-        <h3>文中图片资源</h3>
-        <button id="closeImageAssetsBtn" type="button" class="modal-close">关闭</button>
+        <div class="modal-header-title">
+          <h3>文中图片资源</h3>
+          <span class="modal-header-hint">所有图片都保存在本地 IndexedDB 中</span>
+        </div>
+        <div class="modal-header-actions">
+          <button id="clearImageAssetsBtn" type="button" class="danger">清理图片缓存</button>
+          <button id="closeImageAssetsBtn" type="button" class="modal-close">关闭</button>
+        </div>
       </header>
       <div class="modal-body">
         <div class="image-assets-table-wrap">
@@ -945,6 +951,7 @@ const mobileEntryPrompt = document.querySelector('#mobileEntryPrompt');
 const mobileEntryContinueBtn = document.querySelector('#mobileEntryContinueBtn');
 const imageAssetsModal = document.querySelector('#imageAssetsModal');
 const imageAssetsBackdrop = document.querySelector('#imageAssetsBackdrop');
+const clearImageAssetsBtn = document.querySelector('#clearImageAssetsBtn');
 const closeImageAssetsBtn = document.querySelector('#closeImageAssetsBtn');
 const imageFileInput = document.querySelector('#imageFileInput');
 const editorViewRoot = document.querySelector('#editorView');
@@ -1360,6 +1367,16 @@ async function getImageAsset(assetId) {
   });
 }
 
+async function clearImageAssets() {
+  const db = await getAssetDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(ASSET_STORE_NAME, 'readwrite');
+    tx.objectStore(ASSET_STORE_NAME).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('清理图片缓存失败'));
+  });
+}
+
 function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1519,6 +1536,9 @@ async function resolvePreviewLocalImages() {
 function renderPreview(markdownText) {
   revokePreviewObjectUrls();
   preview.innerHTML = md.render(markdownText);
+  if (inlineLinksEnabled) {
+    appendInlineLinks(preview);
+  }
   renderImageRefList(markdownText);
   void resolvePreviewLocalImages();
 }
@@ -1699,9 +1719,6 @@ async function buildCopyHtml() {
   toInlineStyles(preview, cloned);
   normalizeCopyDom(cloned);
   await convertLocalImagesForCopy(cloned);
-  if (inlineLinksEnabled) {
-    appendInlineLinks(cloned);
-  }
   const cleanedRootStyle = [
     'border:none',
     'border-radius:0',
@@ -1871,6 +1888,28 @@ wechatPopover.addEventListener('click', (event) => {
 closeImageAssetsBtn.addEventListener('click', () => {
   closeImageAssetsModal();
 });
+clearImageAssetsBtn.addEventListener('click', async () => {
+  const confirmed = window.confirm('确认清理 IndexedDB 中的图片缓存吗？清理后，文中已引用的本地图片会失效，需重新上传。');
+  if (!confirmed) return;
+
+  clearImageAssetsBtn.disabled = true;
+  const previousText = clearImageAssetsBtn.textContent;
+  clearImageAssetsBtn.textContent = '清理中...';
+  try {
+    await clearImageAssets();
+    renderPreview(currentMarkdown);
+    if (!imageAssetsModal.classList.contains('hidden')) {
+      renderImageRefList(currentMarkdown);
+    }
+    window.alert('已清理 IndexedDB 中的所有图片缓存。');
+  } catch (error) {
+    console.error(error);
+    window.alert('清理图片缓存失败，请稍后重试');
+  } finally {
+    clearImageAssetsBtn.disabled = false;
+    clearImageAssetsBtn.textContent = previousText;
+  }
+});
 imageAssetsBackdrop.addEventListener('click', () => {
   closeImageAssetsModal();
 });
@@ -1955,6 +1994,7 @@ inlineLinksBtn.addEventListener('click', () => {
   inlineLinksEnabled = !inlineLinksEnabled;
   localStorage.setItem(STORAGE_KEYS.inlineLinks, inlineLinksEnabled ? '1' : '0');
   renderInlineLinksButton();
+  renderPreview(currentMarkdown);
 });
 
 snippetList.addEventListener('click', (event) => {
