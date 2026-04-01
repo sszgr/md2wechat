@@ -643,6 +643,32 @@ const BUILTIN_THEMES = [
 .wx-article th { background: #f7f7f7; color: #505050; }
 `,
   },
+  {
+    id: 'warm-yellow-note',
+    name: '暖黄笔记',
+    css: `
+.wx-article { color:#3a3a3a; font-size:16px; line-height:1.8; letter-spacing:0; }
+.wx-article h1,.wx-article h2,.wx-article h3,.wx-article h4 { margin:1.4em 0 0.7em; line-height:1.5; font-weight:700; }
+.wx-article h1 { font-size:1.62em; color:#515151; }
+.wx-article h2 { display:block; width:100%; padding:2px 13px; font-size:1.38em; color:#515151; background:linear-gradient(0deg,#ffb11b 40%,transparent 40%) no-repeat; background-size:100% 100%; }
+.wx-article h3 { font-size:1.14em; line-height:1.8; color:#222; padding-left:20px; border-left:3px solid #ffb11b; }
+.wx-article h4 { font-size:1em; color:#515151; }
+.wx-article p { margin:0; padding:8px 0; }
+.wx-article a { color:#daa520; font-weight:700; text-decoration:none; border-bottom:1px solid #daa520; }
+.wx-article ul,.wx-article ol { margin:0; padding:8px 0 8px 1.4em; }
+.wx-article li { line-height:1.8; }
+.wx-article li::marker { color:#000; }
+.wx-article blockquote { margin:10px 0; padding:8px 16px; color:#6f5a35; background:#fff7e7; border-left:4px solid #ffb11b; }
+.wx-article hr { margin:10px 0; height:1px; border:0; border-top:1px solid #f9bf45; }
+.wx-article code { font-family:Consolas,Monaco,Menlo,monospace; font-size:12px; color:#c7254e; background:#f5f5f5; border-radius:3px; padding:1px 4px; }
+.wx-article pre { overflow-x:auto; margin:10px 0; padding:15px 16px 16px; color:#abb2bf; background:#282c34; border-radius:5px; font-family:Consolas,Monaco,Menlo,monospace; font-size:12px; }
+.wx-article pre code { padding:0; color:inherit; background:transparent; }
+.wx-article table { width:100%; border-collapse:collapse; margin:10px 0; font-size:14px; }
+.wx-article th,.wx-article td { padding:6px 8px; border:1px solid #e6e6e6; line-height:1.6; }
+.wx-article th { color:#505050; background:#f7f7f7; }
+.wx-article table code { color:inherit; background:transparent; padding:0; }
+`,
+  },
 ];
 
 const THEME_CARD_META = {
@@ -674,6 +700,7 @@ const THEME_CARD_META = {
   'weekly-merge': { desc: '技术周报与更新汇总', cover: 'linear-gradient(140deg, #e5eef6 0%, #fbfdff 100%)', accent: '#4d88bb' },
   'soft-living': { desc: '生活方式与品牌内容', cover: 'linear-gradient(140deg, #fde8ec 0%, #fff9f8 100%)', accent: '#c06d82' },
   'marker-note': { desc: '黄色荧光笔标题强调风格', cover: 'linear-gradient(140deg, #fff4d8 0%, #fffaf1 100%)', accent: '#d08d2a' },
+  'warm-yellow-note': { desc: '暖黄纸感，适合日常笔记', cover: 'linear-gradient(140deg, #ffe9b8 0%, #fff8e8 100%)', accent: '#d39a1f' },
 };
 
 const INLINE_STYLE_PROPS = [
