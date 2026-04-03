@@ -1650,7 +1650,30 @@ function renderInlineLinksButton() {
   inlineLinksBtn.textContent = inlineLinksEnabled ? '追加文内链接：开' : '追加文内链接：关';
 }
 
+function normalizeCopyListItems(rootEl) {
+  const blockTags = new Set([
+    'P', 'DIV', 'SECTION', 'ARTICLE', 'UL', 'OL', 'LI',
+    'BLOCKQUOTE', 'PRE', 'TABLE', 'HR',
+    'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+  ]);
+
+  rootEl.querySelectorAll('li').forEach((el) => {
+    const hasDirectBlockChild = Array.from(el.children).some((child) => blockTags.has(child.tagName));
+    if (hasDirectBlockChild) return;
+
+    const wrapper = document.createElement('span');
+    appendStyle(wrapper, 'display:inline;');
+
+    while (el.firstChild) {
+      wrapper.appendChild(el.firstChild);
+    }
+
+    el.appendChild(wrapper);
+  });
+}
+
 function normalizeCopyDom(rootEl) {
+  normalizeCopyListItems(rootEl);
   appendStyle(rootEl, 'box-sizing:border-box;line-height:1.75;word-break:break-word;');
 
   rootEl.querySelectorAll('p').forEach((el) => {
