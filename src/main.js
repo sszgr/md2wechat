@@ -714,6 +714,7 @@ const INLINE_STYLE_PROPS = [
   'text-align', 'text-decoration', 'text-indent', 'white-space', 'word-break',
   'vertical-align',
   'list-style-type',
+  'overflow', 'overflow-x', 'overflow-y',
   'box-shadow',
 ];
 
@@ -791,6 +792,30 @@ function loadHighlightAssets(themeId, onReady) {
   document.head.appendChild(script);
 }
 
+function formatHighlightedCode(html, preserveNewlines = false) {
+  let formatted = html;
+  formatted = formatted.replace(
+    /(<span[^>]*>[^<]*<\/span>)(\s+)(<span[^>]*>[^<]*<\/span>)/g,
+    (_, span1, spaces, span2) => span1 + span2.replace(/^(<span[^>]*>)/, `$1${spaces}`),
+  );
+  formatted = formatted.replace(
+    /(\s+)(<span[^>]*>)/g,
+    (_, spaces, span) => span.replace(/^(<span[^>]*>)/, `$1${spaces}`),
+  );
+  formatted = formatted.replace(/\t/g, '    ');
+
+  if (preserveNewlines) {
+    formatted = formatted
+      .replace(/\r\n/g, '<br/>')
+      .replace(/\n/g, '<br/>')
+      .replace(/(>[^<]+)|(^[^<]+)/g, (str) => str.replace(/\s/g, '&nbsp;'));
+  } else {
+    formatted = formatted.replace(/(>[^<]+)|(^[^<]+)/g, (str) => str.replace(/\s/g, '&nbsp;'));
+  }
+
+  return formatted;
+}
+
 const md = new MarkdownIt({
   html: true,
   breaks: true,
@@ -798,15 +823,16 @@ const md = new MarkdownIt({
   typographer: true,
   highlight(str, lang) {
     const hljs = getHljs();
+    const langName = (lang || '').split(/\s+/)[0];
     if (!hljs) {
-      return `<pre><code>${escapeHtml(str)}</code></pre>`;
+      return `<pre><code>${formatHighlightedCode(escapeHtml(str), true)}</code></pre>`;
     }
-    if (lang && hljs.getLanguage(lang)) {
-      const highlighted = hljs.highlight(str, { language: lang }).value;
-      return `<pre class="hljs"><code class="language-${lang}">${highlighted}</code></pre>`;
+    if (langName && hljs.getLanguage(langName)) {
+      const highlighted = hljs.highlight(str, { language: langName }).value;
+      return `<pre class="hljs"><code class="language-${langName}">${formatHighlightedCode(highlighted, true)}</code></pre>`;
     }
     const highlighted = hljs.highlightAuto(str).value;
-    return `<pre class="hljs"><code>${highlighted || escapeHtml(str)}</code></pre>`;
+    return `<pre class="hljs"><code>${formatHighlightedCode(highlighted || escapeHtml(str), true)}</code></pre>`;
   },
 });
 
@@ -1646,6 +1672,23 @@ function appendStyle(el, styleText) {
   el.setAttribute('style', `${current};${styleText}`);
 }
 
+function prepareCopyCodeBlocks(rootEl) {
+  rootEl.querySelectorAll('pre').forEach((preEl) => {
+    preEl.setAttribute('data-copy-code-block', '1');
+
+    const codeEl = preEl.querySelector(':scope > code');
+    if (codeEl) {
+      codeEl.setAttribute('data-copy-code-inner', '1');
+      return;
+    }
+
+    const fallbackCodeEl = document.createElement('code');
+    fallbackCodeEl.textContent = (preEl.textContent || '').replace(/\u00a0/g, ' ');
+    fallbackCodeEl.setAttribute('data-copy-code-inner', '1');
+    preEl.replaceChildren(fallbackCodeEl);
+  });
+}
+
 function renderInlineLinksButton() {
   inlineLinksBtn.textContent = inlineLinksEnabled ? '追加文内链接：开' : '追加文内链接：关';
 }
@@ -1673,6 +1716,7 @@ function normalizeCopyListItems(rootEl) {
 }
 
 function normalizeCopyDom(rootEl) {
+  prepareCopyCodeBlocks(rootEl);
   normalizeCopyListItems(rootEl);
   appendStyle(rootEl, 'box-sizing:border-box;line-height:1.75;word-break:break-word;');
 
@@ -1692,8 +1736,12 @@ function normalizeCopyDom(rootEl) {
     appendStyle(el, 'max-width:100%;height:auto;display:block;');
   });
 
-  rootEl.querySelectorAll('pre').forEach((el) => {
-    appendStyle(el, 'line-height:1.6;white-space:pre-wrap;word-break:break-word;');
+  rootEl.querySelectorAll('[data-copy-code-block="1"]').forEach((el) => {
+    appendStyle(el, 'display:block;box-sizing:border-box;max-width:100%;overflow-x:auto;overflow-y:hidden;white-space:pre;word-break:normal;');
+  });
+
+  rootEl.querySelectorAll('[data-copy-code-inner="1"]').forEach((el) => {
+    appendStyle(el, 'display:block;min-width:max-content;white-space:pre;word-break:normal;font-family:inherit;background:transparent;padding:0;margin:0;line-height:inherit;');
   });
 
   rootEl.querySelectorAll('li').forEach((el) => {
