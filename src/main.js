@@ -1,6 +1,6 @@
 import { EditorView, keymap } from '@codemirror/view';
 import { Compartment, EditorState } from '@codemirror/state';
-import { defaultKeymap } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import { css } from '@codemirror/lang-css';
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete';
@@ -1928,7 +1928,8 @@ let currentMarkdown = getInitialMarkdown();
 const editorState = EditorState.create({
   doc: currentMarkdown,
   extensions: [
-    keymap.of(defaultKeymap),
+    history(),
+    keymap.of([...defaultKeymap, ...historyKeymap]),
     markdown(),
     EditorView.lineWrapping,
     EditorView.theme({
