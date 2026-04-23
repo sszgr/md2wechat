@@ -845,10 +845,6 @@ app.innerHTML = `
       <button id="themeViewBtn" class="tab-btn" type="button">主题管理</button>
       <button id="imageAssetsBtn" type="button">文中图片</button>
       <div class="tool-field">
-        <span class="tool-label">预览主题：</span>
-        <select id="themeSelect" title="选择主题"></select>
-      </div>
-      <div class="tool-field">
         <span class="tool-label">代码主题：</span>
         <select id="codeThemeSelect" title="代码主题"></select>
       </div>
@@ -897,6 +893,11 @@ app.innerHTML = `
       <div class="panel-title panel-title-row">
         <span>预览</span>
         <div class="panel-title-actions">
+          <div class="preview-theme-switch">
+            <button id="prevThemeBtn" class="theme-nav-btn" type="button" title="上一主题" aria-label="上一主题">&lt;</button>
+            <select id="themeSelect" title="选择预览主题"></select>
+            <button id="nextThemeBtn" class="theme-nav-btn" type="button" title="下一主题" aria-label="下一主题">&gt;</button>
+          </div>
           <button id="inlineLinksBtn" type="button">追加文内链接：关</button>
           <button id="selectPreviewBtn" type="button">全选预览</button>
           <button id="copyBtn" class="primary" type="button">复制到公众号</button>
@@ -1013,6 +1014,8 @@ const themeSelect = document.querySelector('#themeSelect');
 const codeThemeSelect = document.querySelector('#codeThemeSelect');
 const previewModeSelect = document.querySelector('#previewModeSelect');
 const previewViewport = document.querySelector('#previewViewport');
+const prevThemeBtn = document.querySelector('#prevThemeBtn');
+const nextThemeBtn = document.querySelector('#nextThemeBtn');
 const inlineLinksBtn = document.querySelector('#inlineLinksBtn');
 const selectPreviewBtn = document.querySelector('#selectPreviewBtn');
 const copyBtn = document.querySelector('#copyBtn');
@@ -1365,6 +1368,17 @@ function applyTheme(themeId) {
   themeStyleTag.textContent = theme.css;
   localStorage.setItem(STORAGE_KEYS.selectedTheme, theme.id);
   themeSelect.value = theme.id;
+}
+
+function switchThemeByOffset(offset) {
+  if (!Number.isInteger(offset) || offset === 0 || allThemes.length === 0) return;
+  const currentThemeId = getThemeById(themeSelect.value || localStorage.getItem(STORAGE_KEYS.selectedTheme)).id;
+  const currentIndex = allThemes.findIndex((theme) => theme.id === currentThemeId);
+  const baseIndex = currentIndex >= 0 ? currentIndex : 0;
+  const nextIndex = (baseIndex + offset + allThemes.length) % allThemes.length;
+  const nextThemeId = allThemes[nextIndex].id;
+  applyTheme(nextThemeId);
+  renderThemeListSelection(nextThemeId);
 }
 
 function isLocalImageUrl(url) {
@@ -1820,7 +1834,6 @@ async function buildCopyHtml() {
   const cleanedRootStyle = [
     'border:none',
     'border-radius:0',
-    'background:transparent',
     'box-shadow:none',
     'padding:0',
     'margin:0',
@@ -2076,6 +2089,12 @@ window.addEventListener('beforeunload', () => {
 themeSelect.addEventListener('change', () => {
   applyTheme(themeSelect.value);
   renderThemeListSelection(themeSelect.value);
+});
+prevThemeBtn.addEventListener('click', () => {
+  switchThemeByOffset(-1);
+});
+nextThemeBtn.addEventListener('click', () => {
+  switchThemeByOffset(1);
 });
 
 previewModeSelect.addEventListener('change', () => {

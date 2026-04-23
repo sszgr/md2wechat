@@ -252,7 +252,24 @@ button:disabled {
 
 .panel-title-actions {
   display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.preview-theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-theme-switch select {
+  min-width: 170px;
+}
+
+.theme-nav-btn {
+  min-width: 34px;
+  padding: 8px 10px;
 }
 
 .editor-panel #editor,
