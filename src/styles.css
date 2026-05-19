@@ -316,7 +316,7 @@ button:disabled {
   height: auto;
 }
 
-.wx-article pre.hljs {
+.code-theme-active .wx-article pre.hljs {
   background: var(--hljs-bg) !important;
   color: var(--hljs-fg) !important;
 }
